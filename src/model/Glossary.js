@@ -1,9 +1,10 @@
 export default class Glossary {
-    constructor(id, question, incorrectAnswer,correctAnswer, isVisible) {
+    constructor(id, question, incorrectAnswer, correctAnswer, extraInfo, isVisible) {
         this.id = id
         this.question = question
         this.incorrectAnswer = incorrectAnswer
         this.correctAnswer = correctAnswer
+        this.extraInfo = extraInfo
         this.isVisible = isVisible
     }
 
