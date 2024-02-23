@@ -1,81 +1,60 @@
 import './App.css';
 import { useState } from 'react';
-import BookArray from './model/BookArray'
-import Items from './components/Items'
-import Basket from './components/Basket'
+import Glossary from './model/Glossary'
+import GlossaryArray from './model/GlossaryArray'
+import GlossaryButton from './components/GlossaryButton'
+import QuestionButton from './components/QuestionButton'
 
 function App() {
-  const [books, setBooks] = useState(BookArray)
-  // const [selectedIndexes, setSelectedIndexes] = useState([]);
-  const [cartItems, setCartItems] = useState([]);
+  const [message, setMessage] = useState()
+  const [currentQuestion, setCurrentQuestion] = useState(0)
+  const [glossary, setGlossary] = useState(GlossaryArray)
 
-  const handleAddToCart = (index) => {
-    // setSelectedIndexes([...selectedIndexes, index]);
-    const item = books[index];
-    const itemIndex = cartItems.findIndex((cartItem) => cartItem.book.id === item.id);
-    if (itemIndex !== -1) {
-      const updatedCartItems = [...cartItems];
-      updatedCartItems[itemIndex].quantity += 1;
-      setCartItems(updatedCartItems);
+  // for Quiz:
+
+  function nextQuestion() {
+    setMessage("")
+    currentQuestion >= glossary.length - 1 ?
+      setCurrentQuestion(0) : setCurrentQuestion(currentQuestion + 1)
+  }
+  
+  function onAttempt(attempt) {
+    if (glossary[currentQuestion].checkAnswer(attempt)) {
+      setMessage("Correct!! :)")
+      setTimeout(() => nextQuestion(), 1500);
     } else {
-      setCartItems([...cartItems, { book: item, quantity: 1 }]);
+      setMessage("Incorrect.. :(")
     }
-  };
+  }
 
-  const handleRemoveFromCart = (index) => {
-    // const updatedIndexes = selectedIndexes.filter((idx) => idx !== index);
-    // setSelectedIndexes(updatedIndexes);
-    const updatedCartItems = [...cartItems];
-    updatedCartItems[index].quantity -= 1;
-    if (updatedCartItems[index].quantity === 0) {
-      updatedCartItems.splice(index, 1);
-    }
-    setCartItems(updatedCartItems);
-  };
-
-  const calculateTotal = () => {
-    let totalPrice = 0;
-    // selectedIndexes.forEach((index) => {
-    //   totalPrice += (books[index].price * ((100 - books[index].discount) / 100))
-    // });
-    cartItems.forEach((cartItem) => {
-      totalPrice += (cartItem.book.price * ((100 - cartItem.book.discount) / 100)) * cartItem.quantity;
-    });
-    return Math.round((totalPrice + Number.EPSILON) * 100) / 100
-  };
+  const toggleVisibility = (index) => {
+    const updatedGlossary = [...glossary]
+    updatedGlossary[index].isVisible = !updatedGlossary[index].isVisible
+    setGlossary(updatedGlossary)
+  }
 
   return (
     <div className="App">
       <header className="App-header">
-        <div className="items-container">
-        <div className="header">Books</div>
-          <div className="book-box-container">
-            {books.map((book, index) => {
-              // const isSelected = selectedIndexes.includes(index);
-              return (
-                <Items
-                  key={index}
-                  index={index}
-                  book={book}
-                  // isSelected={isSelected}
-                  handleAddToCart={handleAddToCart}
-                />
-              );
-            })}
-          </div>
+        <div className="glossary-container">
+          {glossary.map((item, index) => {
+            return (
+            <GlossaryButton key={index} item={item} toggleVisibility={() => toggleVisibility(index)}/>
+            )
+          })}
         </div>
-        <div className="cart">
-          <div className="header">Cart</div>
-            <div className="chosen-item">
-              {cartItems.map((cartItem, index) => {
-                return (
-                  <Basket calculateTotal={calculateTotal} handleRemoveFromCart={handleRemoveFromCart} books={books} index={index} cartItem={cartItem}/>
-                )
-              })}
+        <div className="quiz">
+          <h1>Quiz time!</h1>
+            <div>What is {glossary[currentQuestion].question}?</div>
+            <h3>{message}</h3>
+            <div className="answers"> 
+            {glossary[currentQuestion].shuffleOptions().map((option, index) => {
+              return (
+                <QuestionButton key={index} label={option} onAttempt={() => onAttempt(option)}/>
+              )
+            })}
             </div>
-            <div className="total"><span>Total price:</span><b> £{calculateTotal()}</b> GBP
-          </div>
-          </div>
+        </div>
       </header>
     </div>
   );
